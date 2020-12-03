@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Miniprojeto 3 - Iluminação</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="assets/favicon.png">
+
+    <!-- Fonte -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Shoelace Library -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.23/dist/shoelace/shoelace.css">
+    <script type="module"
+        src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.23/dist/shoelace/shoelace.esm.js">
+    </script>
+
+    <!-- Folha de estilos customizada -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <a href="https://github.com/MarconiGRF/Miniprojeto3-PG" class="github-corner"
+        aria-label="Visualizar código-fonte no GitHub">
+        <svg width="80" height="80" viewBox="0 0 250 250"
+            style="fill:#009DFF; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+            <path
+                d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+                fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+            <path
+                d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+                fill="currentColor" class="octo-body"></path>
+        </svg>
+    </a>
+    <div id="app" class="flex">
+        <div id="control-panel">
+            <h1 class="title">Miniprojeto 3 • <span class="blue-color">Iluminação</span></h1>
+            <div class="controllers-container" id="textures-controller">
+                <div class="controller">
+                    <h2 class="controller-title">Texturas</h2>
+
+                    <div class="controller-subgroup">
+                        <h3>Cor base</h3>
+                        <input type="file" accept="image/*" id="base-color-image-input">
+                    </div>
+
+                    <div class="controller-subgroup">
+                        <h3>Mapa de especular</h3>
+                        <input type="file" accept="image/*" id="specular-map-image-input">
+                    </div>
+
+                    <div class="controller-subgroup">
+                        <h3>Mapa de normal</h3>
+                        <input type="file" accept="image/*" id="normal-map-image-input">
+                    </div>
+
+                    <div class="controller-subgroup">
+                        <h3 class="font-bold">Ou carregue um exemplo:</h3>
+
+                        <div class="controller-buttons">
+                            <button class="controller-button flex" id="load-example-1-button" onclick="loadSampleImages('char1')">
+                                <img src="assets/sample-images/char1_d.png" alt="Imagens de exemplo 1">
+                            </button>
+
+                            <button class="controller-button flex" id="load-example-2-button" onclick="loadSampleImages('char2')">
+                                <img src="assets/sample-images/char2_d.png" alt="Imagens de exemplo 2">
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="controller" id="light-controller">
+                    <h2 class="controller-title">Iluminação</h2>
+
+                    <div class="controller-subgroup">
+                        <div class="controller-subgroup-element flex">
+                            <h3>Posição da fonte de luz direcional</h3>
+                            <sl-button id="directional-light-source-position-selector" onclick="selectDirectionalLightSourcePosition()" type="default" circle>
+                                <sl-icon src="assets/cursor.svg"></sl-icon>
+                            </sl-button>
+                        </div>
+                    </div>
+
+                    <div class="controller-subgroup">
+                        <div class="controller-subgroup-element flex">
+                            <h3>Cor da fonte de luz</h3>
+                            <sl-color-picker id="light-source-color-picker" hoist="true"></sl-color-picker>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="controller" id="visualization-controller">
+                    <h2 class="controller-title">Visualização</h2>
+                    <div class="controller-subgroup">
+                        <div class="controller-subgroup-element flex">
+                            <h4>Componente difusa</h4>
+                            <sl-switch id="show-diffuse-component-switch"></sl-switch>
+                        </div>
+                        <div class="controller-subgroup-element flex">
+                            <h4>Componente especular</h4>
+                            <sl-switch id="show-specular-component-switch"></sl-switch>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="footer footer-course">Processamento Gráfico • 2020.3</p>
+                <p class="footer footer-authors">Erick Almeida e Marconi Gomes</p>
+            </div>
+        </div>
+        <div id="canvas-container">
+            <p id="waiting-for-textures-message">Configure a cena no painel. Assim que você selecionar as texturas, a imagem resultante aparecerá aqui.</p>
+            <canvas id="canvas-panel" class="hidden-element"></canvas>
+        </div>
+    </div>
+    <sl-alert id="toast-alert" duration="8000" closable>
+        <sl-icon slot="icon"></sl-icon>
+        <span id="toast-alert-content"></span>
+    </sl-alert>
+    <script src="js/controller.js"></script>
+</body>
+
+</html>

@@ -5,4 +5,4 @@ Erick Almeida (<eaor@cin.ufpe.br>) e Marconi Gomes (<mgrf@cin.ufpe.br>)
 
 ## Visualizar
 
-**Visite a página para visualizar o projeto.**
+**Visite a [página](https://marconigrf.github.io/Miniprojeto3-PG/) para visualizar o projeto.**

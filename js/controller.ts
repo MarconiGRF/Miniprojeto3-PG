@@ -273,8 +273,12 @@ let toastAlert: HTMLElement;
 /* INICIALIZAÇÃO */
 
 (function() {
+
+    canvasElement = document.getElementById('canvas-panel') as HTMLCanvasElement;
+    canvasContext = canvasElement.getContext('2d');
     
     toastAlert = document.getElementById('toast-alert');
+
     configureInterface({
         directionalLightSourcePosition: new BidimensionalVector(0, 0),
         lightSourceColor: '#aaaaaa',
@@ -472,7 +476,6 @@ async function loadSampleImages(imageName: string) {
 function updateCanvas() {
 
     const waitingForTexturesMessage = document.getElementById('waiting-for-textures-message')
-    canvasElement = document.getElementById('canvas-panel') as HTMLCanvasElement;
 
     if (baseColorImage && specularMapImage && normalMapImage) {
         waitingForTexturesMessage.classList.add('hidden-element');
@@ -481,7 +484,6 @@ function updateCanvas() {
         canvasElement.width = baseColorImage.naturalWidth;
         canvasElement.height = baseColorImage.naturalHeight;
         
-        canvasContext = canvasElement.getContext('2d');
         canvasBoundingRectangle = canvasElement.getBoundingClientRect();
         
         renderImage();

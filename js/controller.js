@@ -223,6 +223,8 @@ let canvasBoundingRectangle;
 let toastAlert;
 /* INICIALIZAÇÃO */
 (function () {
+    canvasElement = document.getElementById('canvas-panel');
+    canvasContext = canvasElement.getContext('2d');
     toastAlert = document.getElementById('toast-alert');
     configureInterface({
         directionalLightSourcePosition: new BidimensionalVector(0, 0),
@@ -382,13 +384,11 @@ function loadSampleImages(imageName) {
 }
 function updateCanvas() {
     const waitingForTexturesMessage = document.getElementById('waiting-for-textures-message');
-    canvasElement = document.getElementById('canvas-panel');
     if (baseColorImage && specularMapImage && normalMapImage) {
         waitingForTexturesMessage.classList.add('hidden-element');
         canvasElement.classList.remove('hidden-element');
         canvasElement.width = baseColorImage.naturalWidth;
         canvasElement.height = baseColorImage.naturalHeight;
-        canvasContext = canvasElement.getContext('2d');
         canvasBoundingRectangle = canvasElement.getBoundingClientRect();
         renderImage();
     }

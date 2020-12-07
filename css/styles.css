@@ -116,6 +116,11 @@ h1,  p {
     padding-top: 1em;
 }
 
+.controller input[type='file'] {
+    font: inherit;
+    font-size: 0.75em;
+}
+
 .controller-buttons {
     display: flex;
     flex-direction: row;

@@ -212,7 +212,8 @@ class PixelRepresentation {
 /* VARIÁVEIS GLOBAIS */
 // Estado e configurações
 let renderingSettings;
-let interfaceStatus; // TODO
+let interfaceStatus;
+let waitingForTexturesMessage;
 let baseColorImage;
 let specularMapImage;
 let normalMapImage;
@@ -226,6 +227,8 @@ let toastAlert;
     canvasElement = document.getElementById('canvas-panel');
     canvasContext = canvasElement.getContext('2d');
     toastAlert = document.getElementById('toast-alert');
+    waitingForTexturesMessage = document.getElementById('waiting-for-textures-message');
+    interfaceStatus = InterfaceStatus.waitingForTextures;
     configureInterface({
         directionalLightSourcePosition: new BidimensionalVector(0, 0),
         lightSourceColor: '#aaaaaa',
@@ -252,7 +255,6 @@ function presentToastAlert(message, warning = false) {
 }
 function configureInterface(standardRenderingSettings) {
     renderingSettings = standardRenderingSettings;
-    // FIXME: input event listeners
     document.getElementById('base-color-image-input').addEventListener('change', (event) => {
         const fileList = event.target.files;
         for (const file of fileList) {
@@ -315,48 +317,39 @@ function configureInterface(standardRenderingSettings) {
     showSpecularComponentSwitch.checked = renderingSettings.showSpecularComponent;
     lightSourceColorPicker.addEventListener('sl-change', (event) => {
         renderingSettings.lightSourceColor = event.target.value;
-        renderImage();
+        if (interfaceStatus !== InterfaceStatus.waitingForTextures) {
+            renderImage();
+        }
     });
     showDiffuseComponentSwitch.addEventListener('sl-change', (event) => {
         renderingSettings.showDiffuseComponent = event.target.checked;
-        renderImage();
+        if (interfaceStatus !== InterfaceStatus.waitingForTextures) {
+            renderImage();
+        }
     });
     showSpecularComponentSwitch.addEventListener('sl-change', (event) => {
         renderingSettings.showSpecularComponent = event.target.checked;
-        renderImage();
+        if (interfaceStatus !== InterfaceStatus.waitingForTextures) {
+            renderImage();
+        }
     });
-    // function onLoadImage(event: Event, targetImageName: string) {
-    //     const fileList: FileList = (event.target as any).files;
-    //     for (const file of fileList) {
-    //         if (file.type && file.type.indexOf('image') === -1) {
-    //             presentToastAlert('O arquivo fornecido não é uma imagem válida.', true);
-    //             return;
-    //         }
-    //         const reader = new FileReader();
-    //         reader.addEventListener('load', async (event: Event) => {
-    //             globalThis[targetImageName] = new Image();
-    //             globalThis[targetImageName].src = (event.target as any).result;
-    //             globalThis[targetImageName].addEventListener('load', () => {
-    //                 updateCanvas();
-    //             })
-    //         });
-    //         reader.readAsDataURL(file);
-    //     }
-    // }
-    // document.getElementById('base-color-image-input').addEventListener('change', (event: Event) => {onLoadImage(event, 'baseColorImage')});
-    // document.getElementById('specular-map-image-input').addEventListener('change', (event: Event) => {onLoadImage(event, 'specularMapImage')});
-    // document.getElementById('normal-map-image-input').addEventListener('change', (event: Event) => {onLoadImage(event, 'normalMapImage')});
 }
 function selectDirectionalLightSourcePosition() {
-    // TODO: InterfaceStatus != waitingForTextures
-    let onMouseMove = (mouseMoveEvent) => {
+    if (interfaceStatus === InterfaceStatus.waitingForTextures) {
+        return;
+    }
+    let selectHoveredPosition = (mouseMoveEvent) => {
         renderingSettings.directionalLightSourcePosition = getCanvasClickCoordinates(mouseMoveEvent);
         optimizedRenderImage();
     };
-    let onMouseUp = () => {
-        canvasElement.removeEventListener('mousemove', onMouseMove);
-        canvasElement.removeEventListener('mouseup', onMouseUp);
+    let endSelection = () => {
+        canvasElement.removeEventListener('mousemove', selectHoveredPosition);
+        canvasElement.removeEventListener('mouseup', endSelection);
+        // TODO: alterar a interfaceStatus para texture
     };
+    if (interfaceStatus === InterfaceStatus.selectingdirectionalLightSourcePosition) {
+        endSelection();
+    }
     let isRenderingImage = false;
     let optimizedRenderImage = function () {
         if (isRenderingImage) {
@@ -368,33 +361,67 @@ function selectDirectionalLightSourcePosition() {
             isRenderingImage = false;
         });
     };
-    canvasElement.addEventListener('mousemove', onMouseMove);
-    canvasElement.addEventListener('mouseup', onMouseUp);
+    // TODO: alterar a interfaceStatus para selecting 
+    canvasElement.addEventListener('mousemove', selectHoveredPosition);
+    canvasElement.addEventListener('mouseup', endSelection);
 }
 function getCanvasClickCoordinates(event) {
     return new BidimensionalVector(event.clientX - canvasElement.getBoundingClientRect().left, event.clientY - canvasElement.getBoundingClientRect().top);
 }
 function loadSampleImages(imageName) {
-    return __awaiter(this, void 0, void 0, function* () {
-        // FIXME
-        let baseColorBlob = yield fetch(`assets/sample-images/${imageName}_d.png`).then(result => result.blob());
-        let specularMapBlob = yield fetch(`assets/sample-images/${imageName}_s.png`).then(result => result.blob());
-        let normalMapBlob = yield fetch(`assets/sample-images/${imageName}_n.png`).then(result => result.blob());
+    const sampleImagesPath = 'assets/sample-images';
+    const baseColorImagePromise = new Promise((resolve, reject) => {
+        baseColorImage = new Image();
+        baseColorImage.src = `${sampleImagesPath}/${imageName}_d.png`;
+        baseColorImage.addEventListener('load', () => {
+            resolve();
+        });
+    });
+    const specularMapImagePromise = new Promise((resolve, reject) => {
+        specularMapImage = new Image();
+        specularMapImage.src = `${sampleImagesPath}/${imageName}_s.png`;
+        specularMapImage.addEventListener('load', () => {
+            resolve();
+        });
+    });
+    const normalMapImagePromise = new Promise((resolve, reject) => {
+        normalMapImage = new Image();
+        normalMapImage.src = `${sampleImagesPath}/${imageName}_n.png`;
+        normalMapImage.addEventListener('load', () => {
+            resolve();
+        });
+    });
+    Promise.all([baseColorImagePromise, specularMapImagePromise, normalMapImagePromise]).then(() => {
+        updateCanvas();
     });
 }
 function updateCanvas() {
-    const waitingForTexturesMessage = document.getElementById('waiting-for-textures-message');
+    let nextInterfaceStatus;
     if (baseColorImage && specularMapImage && normalMapImage) {
+        if (interfaceStatus === InterfaceStatus.selectingdirectionalLightSourcePosition) {
+            return;
+        }
+        nextInterfaceStatus = InterfaceStatus.showingCanvasRendering;
+    }
+    else {
+        nextInterfaceStatus = InterfaceStatus.waitingForTextures;
+    }
+    const updateTo = {};
+    updateTo[InterfaceStatus.waitingForTextures] = () => {
+        waitingForTexturesMessage.classList.remove('hidden-element');
+        canvasElement.classList.add('hidden-element');
+    };
+    updateTo[InterfaceStatus.showingCanvasRendering] = () => {
         waitingForTexturesMessage.classList.add('hidden-element');
         canvasElement.classList.remove('hidden-element');
         canvasElement.width = baseColorImage.naturalWidth;
         canvasElement.height = baseColorImage.naturalHeight;
         canvasBoundingRectangle = canvasElement.getBoundingClientRect();
         renderImage();
-    }
-    else {
-        waitingForTexturesMessage.classList.remove('hidden-element');
-        canvasElement.classList.add('hidden-element');
+    };
+    if (interfaceStatus !== nextInterfaceStatus || nextInterfaceStatus === InterfaceStatus.showingCanvasRendering) {
+        updateTo[nextInterfaceStatus]();
+        interfaceStatus = nextInterfaceStatus;
     }
 }
 /* MANIPULAÇÃO DO CANVAS */
